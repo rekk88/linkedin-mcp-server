@@ -18,3 +18,16 @@ services:
     environment:
       - LOG_LEVEL=WARNING
       - MCP_AUTH_TOKEN
+
+  # Login una tantum: non parte con `up`, solo su richiesta.
+  #   docker compose -f docker-compose.http.yml run --rm --service-ports login
+  login:
+    image: stickerdaniel/linkedin-mcp-server:4.29.0
+    profiles: ["login"]
+    command: ["--login", "--login-viewer"]
+    ports:
+      - "127.0.0.1:6080:6080"
+    volumes:
+      - ~/.linkedin-mcp:/home/pwuser/.linkedin-mcp
+    stdin_open: true
+    tty: true
