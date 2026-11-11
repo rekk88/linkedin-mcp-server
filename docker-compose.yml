@@ -1,16 +1,31 @@
+# Server HTTP locale, raggiungibile solo da questo computer.
+#
+#   docker compose up -d
+#   endpoint: http://127.0.0.1:8000/mcp
+#
+# Il login si fa una volta con il comando `--login --login-viewer` del README;
+# la sessione resta in ~/.linkedin-mcp. MCP_AUTH_TOKEN e' facoltativo: senza,
+# nessuna chiave e' richiesta, che va bene finche' la porta resta su 127.0.0.1.
 services:
   linkedin-mcp:
     image: stickerdaniel/linkedin-mcp-server:4.29.0
+    restart: unless-stopped
+    command: ["--transport", "streamable-http", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "127.0.0.1:8000:8000"
     volumes:
       - ~/.linkedin-mcp:/home/pwuser/.linkedin-mcp
     environment:
       - LOG_LEVEL=WARNING
-      # Optional browser proxy, passed through from the host environment or an
-      # .env file. For a relay on the host use host.docker.internal, not
-      # 127.0.0.1, which inside the container is the container itself.
-      - PROXY_SERVER
-      - PROXY_USERNAME
-      - PROXY_PASSWORD
-      - PROXY_BYPASS
-    stdin_open: true
-    tty: true
+      - MCP_AUTH_TOKEN
+
+  # Login una tantum: non parte con `up`, solo su richiesta.
+  #   docker compose up linkedin-login
+  linkedin-login:
+    image: stickerdaniel/linkedin-mcp-server:4.29.0
+    profiles: ["login"]
+    command: ["--login", "--login-viewer"]
+    ports:
+      - "127.0.0.1:6080:6080"
+    volumes:
+      - ~/.linkedin-mcp:/home/pwuser/.linkedin-mcp
